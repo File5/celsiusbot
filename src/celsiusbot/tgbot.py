@@ -2,6 +2,7 @@ from typing import Dict, Any
 
 from aiogram import Bot, Dispatcher, types
 
+from celsiusbot.models import SensorData
 from celsiusbot.settings import BOT_TOKEN, HOST, AUTHORIZED_USER_ID
 
 bot = Bot(token=BOT_TOKEN)
@@ -27,3 +28,11 @@ async def process_update(update: Dict[str, Any]):
     Bot.set_current(bot)
     Dispatcher.set_current(dp)
     await dp.process_update(update)
+
+async def update_display(sensor_data: SensorData):
+    text = "🏠Home\n🌡️ {:.1f} °C 💧 {:.0f} %".format(sensor_data.temperature, sensor_data.humidity)
+    await bot.edit_message_text(
+        text=text,
+        chat_id=authorized_user_display["chat_id"],
+        message_id=authorized_user_display["message_id"],
+    )
