@@ -15,6 +15,7 @@ app = FastAPI(openapi_url=None)
 
 @app.on_event("startup")
 async def startup_event():
+    print(BOT_UPDATE_URL)
     await bot.set_webhook(BOT_UPDATE_URL)
 
 @app.get("/")

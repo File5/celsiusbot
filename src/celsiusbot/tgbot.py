@@ -2,7 +2,7 @@ from typing import Dict, Any
 
 from aiogram import Bot, Dispatcher, types
 
-from celsiusbot.data import append, get_data
+from celsiusbot.data import append, get_data, clear, is_day_changed
 from celsiusbot.plot import generate_plot
 from celsiusbot.models import SensorData
 from celsiusbot.settings import BOT_TOKEN, HOST, AUTHORIZED_USER_ID
@@ -32,18 +32,23 @@ async def process_update(update: Dict[str, Any]):
     await dp.process_update(update)
 
 async def update_display(sensor_data: SensorData):
-    day_changed = append(sensor_data)
+    day_changed = is_day_changed()
+    print(f"is_day_changed() = {day_changed}")
     if day_changed:
         generate_plot(get_data())
+        clear()
         await bot.delete_message(
             chat_id=authorized_user_display["chat_id"],
             message_id=authorized_user_display["message_id"],
         )
         authorized_user_display["message_id"] = None
-        await bot.send_photo(
-            chat_id=authorized_user_display["chat_id"],
-            photo="plot.png",
-        )
+        with open("plot.png", "rb") as plot_file:
+            await bot.send_photo(
+                chat_id=authorized_user_display["chat_id"],
+                photo=plot_file,
+            )
+
+    append(sensor_data)
     
     text = "🏠Home\n🌡️ {:.1f} °C 💧 {:.0f} %".format(sensor_data.temperature, sensor_data.humidity)
     if authorized_user_display["message_id"] is None:
